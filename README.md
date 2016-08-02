@@ -1,6 +1,10 @@
 # DataMgr
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/DataMgr`. To experiment with that code, run `bin/console` for an interactive prompt.
+Data manager that provides support for JSON, YAML, and Database (e.g .SQL Server) dataware.  Provides
+the ability to manage the state of your data - creation, retrieve, and execute (SQL), then manage
+those results for re-use later .. in your automation framework, app. code, etc.
+
+Put your Ruby code in the file `lib/DataMgr`. To experiment with that code, run `bin/console` for an interactive prompt.
 
 
 ## Installation
@@ -21,7 +25,21 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Creating a connection configuration YAML file
+
+        MyConnectID:
+          user: sasquatch
+          password: kale
+          host: somewhere-in-the-woods.com
+          port: 2080
+          description: Big Foot
+        ---
+        AnotherConnectID:
+          user: bigbird
+          password: yellow
+          host: sesame-street
+          port: 2080
+          description: Sesame Street Gang
 
 ## Development
 
