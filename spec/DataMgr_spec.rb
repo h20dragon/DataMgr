@@ -22,16 +22,27 @@ describe DataMgr do
 
   it 'add config to DataMgr::DB' do
 
+    DataMgr::DB.instance.debug=true
+
     rc = DataMgr::DB.instance.load('./spec/fixtures/connect.yml')
 
-    hit=DataMgr::DB.instance.get('KUNAL')
+    hit=DataMgr::DB.instance.getConfig('KUNAL')
     puts "HIT => #{hit}"
-#    isConnected=DataMgr::DB.instance.connect('KUNAL')
-#    isDisconnected=DataMgr::DB.instance.close('KUNAL')
+    isConnected=DataMgr::DB.instance.connect('KUNAL')
 
+    puts "| isConnected : #{isConnected}"
 
+    q="use p0170036ou8o_000 select JR_KEY, JD_KEY, STATUS_CODE FROM CT_JOB_RUN WHERE START_TIME > '2013-09-17' AND END_TIME < '2013-10-17'"
 
-    expect(rc).to be true
+    DataMgr::DB.instance.run(id: 'KUNAL', query: q)
+    DataMgr::DB.instance.run(id: 'KUNAL', query: q, report: 'ReportOne')
+
+    isDisconnected=DataMgr::DB.instance.close('KUNAL')
+
+    result=DataMgr::DB.instance.getResult(id: 'KUNAL', report: 'ReportOne')
+    puts "RESULT => #{result.class} => #{result}"
+
+    expect(rc && isConnected && isDisconnected).to be true
   end
 
 
