@@ -8,13 +8,32 @@ describe DataMgr do
   it 'create object DataMgr::Model' do
 
     obj = DataMgr::DataModel.new('./spec/fixtures/dut.json')
-    rc=obj.getDataElement('data(firstname)')
+    rc=obj.getDataElement('getData(firstname)')
     puts "=> RC : #{rc}"
 
-    rc=obj.getDataElement('data(address).get(city)')
-    puts "=> city : #{rc}"
+    rc2=obj.getDataElement('getData(address).get(city)')
+    puts "=> city : #{rc2}"
 
-    expect(obj.is_a?(DataMgr::DataModel))
+    expect(obj.is_a?(DataMgr::DataModel) && rc=='Peter' && rc2=='New York City').to be true
    # expect(false).to eq(true)
   end
+
+
+
+  it 'add config to DataMgr::DB' do
+
+    rc = DataMgr::DB.instance.load('./spec/fixtures/connect.yml')
+
+    hit=DataMgr::DB.instance.get('KUNAL')
+    puts "HIT => #{hit}"
+#    isConnected=DataMgr::DB.instance.connect('KUNAL')
+#    isDisconnected=DataMgr::DB.instance.close('KUNAL')
+
+
+
+    expect(rc).to be true
+  end
+
+
+
 end
