@@ -1,4 +1,7 @@
-
+#
+# QA Engineering
+# All Rights Reserved 2016
+#
 require 'singleton'
 require 'yaml'
 
