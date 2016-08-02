@@ -19,6 +19,12 @@ module DataMgr
       @app_model
     end
 
+    def saveAs(_fname, _json)
+      _f=File.open(_fname, 'w')
+      _f.puts _json.to_json
+      _f.close
+    end
+
     def loadPages(jlist)
 
       json_list=[]
@@ -46,14 +52,9 @@ module DataMgr
     end
 
 
-    # getPageElement("page(login).get(login_form).get(button)")
-    def getPageElement(s)
-      puts __FILE__ + (__LINE__).to_s + " getPageElement(#{s})"
-
-      if s.match(/^\s*\//) || s.match(/^\s*css\s*=/i) || s.match(/^\s*#/)
-        puts __FILE__ + (__LINE__).to_s + " getPageElement(#{s} return nil"
-        return nil
-      end
+    # getDataElement("data(address).get(city).get(zip)")
+    def getDataElement(s)
+      puts __FILE__ + (__LINE__).to_s + " getDataElement(#{s})"
 
       hit=@app_model
 
@@ -65,10 +66,10 @@ module DataMgr
         getter = elt.split(/\(/)[0]
         _obj = elt.match(/\((.*)\)/)[1]
 
-        puts __FILE__ + (__LINE__).to_s + " getter : #{getter}  obj: #{_obj}" if Scoutui::Utils::TestUtils.instance.isDebug?
+        puts __FILE__ + (__LINE__).to_s + " getter : #{getter}  obj: #{_obj}"
 
-        if getter.downcase.match(/(page|pg)/)
-          puts __FILE__ + (__LINE__).to_s + " -- process page --"  if Scoutui::Utils::TestUtils.instance.isDebug?
+        if getter.downcase.match(/^\s*(getData)\s*/i)
+          puts __FILE__ + (__LINE__).to_s + " -- process page --"
           hit=@app_model[_obj]
         elsif getter.downcase=='get'
           hit=hit[_obj]
@@ -76,23 +77,12 @@ module DataMgr
           puts __FILE__ + (__LINE__).to_s + " getter : #{getter} is unknown."
           return nil
         end
-        puts __FILE__ + (__LINE__).to_s + " HIT => #{hit}" if Scoutui::Utils::TestUtils.instance.isDebug?
+        puts __FILE__ + (__LINE__).to_s + " HIT => #{hit}"
       }
 
       hit
-
     end
 
-
-
-    # visible_when: hover(page(x).get(y).get(z))
-    def itemize(condition='visible_when', _action='hover', _pgObj=nil)
-      @results=hits(nil, @app_model, condition, _action, _pgObj)
-
-      puts "[itemize] => #{@results}"
-
-      @results
-    end
 
 
     def hits(parent, h, condition, _action, pg)
@@ -108,9 +98,9 @@ module DataMgr
             #  h[k].each {|k, v| result[k] = v } # <= tweak here
             if !v.is_a?(Array) && v.match(/^\s*#{_action}\s*\((.*)\)\s*$/i)
 
-              pageObject=v.match(/^\s*#{_action}\s*\((.*)\)\s*$/i)[1]
+              dataObject=v.match(/^\s*#{_action}\s*\((.*)\)\s*$/i)[1]
 
-              puts __FILE__ + (__LINE__).to_s + " <pg, pageObject> : <#{pg}, #{pageObject}>"
+              puts __FILE__ + (__LINE__).to_s + " <pg, pageObject> : <#{pg}, #{dataObject}>"
               #         result[k] = v
 
               #          puts '*******************'
@@ -119,7 +109,7 @@ module DataMgr
 
               if pg.nil?
                 result << parent
-              elsif pg == pageObject
+              elsif pg == dataObject
                 result << parent
 
               end
