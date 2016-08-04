@@ -9,6 +9,10 @@ Put your Ruby code in the file `lib/DataMgr`. To experiment with that code, run 
 
 ## Installation
 
+### Prerequisite
+
+http://stackoverflow.com/questions/33102569/installing-tiny-tds-gives-error-on-on-mac-os-10-10-5
+
 Add this line to your application's Gemfile:
 
 ```ruby
