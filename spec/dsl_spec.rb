@@ -19,5 +19,9 @@ describe DataMgr do
     expect(isLoaded).to be true
   end
 
+  it 'DB connect raises exception' do
+    isLoaded = DataMgr::DSL.instance.loadDB('./spec/fixtures/connect.yml')
+    expect { DataMgr::DSL.instance.connect('Admin') }.to raise_error(DataMgr::DBConnectionError)
+  end
 
 end
