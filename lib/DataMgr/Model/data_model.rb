@@ -5,8 +5,10 @@ module DataMgr
   class DataModel
     attr_accessor :_file
     attr_accessor :app_model
+    attr_accessor :debug
 
     def initialize(f=nil)
+      @debug=false
 
       if !f.nil?
         @_file=f
@@ -20,12 +22,25 @@ module DataMgr
     end
 
     def saveAs(_fname, _json)
-      _f=File.open(_fname, 'w')
-      _f.puts _json.to_json
-      _f.close
+      rc=false
+      begin
+        _f=File.open(_fname, 'w')
+        _f.puts _json.to_json
+        _f.close
+        rc=true
+
+      rescue => ex
+        ;
+      end
+      rc
     end
 
+
     def loadPages(jlist)
+
+      if jlist.nil? || jlist.empty?
+        return nil
+      end
 
       json_list=[]
       if jlist.kind_of?(String)
@@ -36,25 +51,44 @@ module DataMgr
 
       jsonData={}
       json_list.each  { |f|
-        puts __FILE__ + (__LINE__).to_s + " JSON.parse(#{f})"
 
         begin
-          data_hash = JSON.parse File.read(f)
-          jsonData.merge!(data_hash)
+
+          _fd=nil
+          _contents=nil
+          _ext=File.extname(f)
+
+          if _ext.match(/\.(yaml|yml|json|jsn)\s*$/i)
+            _fd = File.open(f, 'r')
+            _contents=_fd.read
+            _fd.close
+
+            _contents = JSON.dump(YAML::load(_contents)) if _ext.match(/(yaml|yml)/i)
+
+            if !_contents.nil?
+              data_hash = JSON.parse _contents
+              jsonData.merge!(data_hash)
+            end
+
+          end
+
         rescue JSON::ParserError
-          Scoutui::Logger::LogMgr.instance.fatal "raise JSON::ParseError - #{f.to_s}"
+          STDERR.puts " raise JSON::ParseError - #{f.to_s}"
           raise "JSONLoadError"
+
+        rescue => ex
+          STDERR.puts " Exception: #{ex.class}"
         end
 
       }
-      puts "merged jsonData => " + jsonData.to_json
+      puts "merged jsonData => " + jsonData.to_json  if @debug
       @app_model = jsonData
     end
 
 
     # getDataElement("data(address).get(city).get(zip)")
     def getDataElement(s)
-      puts __FILE__ + (__LINE__).to_s + " getDataElement(#{s})"
+      puts __FILE__ + (__LINE__).to_s + " getDataElement(#{s})" if @debug
 
       hit=@app_model
 
@@ -66,18 +100,18 @@ module DataMgr
         getter = elt.split(/\(/)[0]
         _obj = elt.match(/\((.*)\)/)[1]
 
-        puts __FILE__ + (__LINE__).to_s + " getter : #{getter}  obj: #{_obj}"
+        puts __FILE__ + (__LINE__).to_s + " getter : #{getter}  obj: #{_obj}" if @debug
 
         if getter.downcase.match(/^\s*(getData)\s*/i)
-          puts __FILE__ + (__LINE__).to_s + " -- process page --"
+          puts __FILE__ + (__LINE__).to_s + " -- process page --" if @debug
           hit=@app_model[_obj]
         elsif getter.downcase=='get'
           hit=hit[_obj]
         else
-          puts __FILE__ + (__LINE__).to_s + " getter : #{getter} is unknown."
+          puts __FILE__ + (__LINE__).to_s + " getter : #{getter} is unknown." if @debug
           return nil
         end
-        puts __FILE__ + (__LINE__).to_s + " HIT => #{hit}"
+        puts __FILE__ + (__LINE__).to_s + " HIT => #{hit}" if @debug
       }
 
       hit
@@ -93,19 +127,12 @@ module DataMgr
       if h.is_a?(Hash)
 
         h.each do |k, v|
-          puts __FILE__ + (__LINE__).to_s + " Key: #{k} => #{v}"
+          puts __FILE__ + (__LINE__).to_s + " Key: #{k} => #{v}" if @debug
           if k == condition
-            #  h[k].each {|k, v| result[k] = v } # <= tweak here
+
             if !v.is_a?(Array) && v.match(/^\s*#{_action}\s*\((.*)\)\s*$/i)
 
               dataObject=v.match(/^\s*#{_action}\s*\((.*)\)\s*$/i)[1]
-
-              puts __FILE__ + (__LINE__).to_s + " <pg, pageObject> : <#{pg}, #{dataObject}>"
-              #         result[k] = v
-
-              #          puts '*******************'
-              #          puts __FILE__ + (__LINE__).to_s + " HIT : #{h[k]}"
-              #          result << { h[k] => v }
 
               if pg.nil?
                 result << parent
@@ -117,14 +144,10 @@ module DataMgr
             elsif v.is_a?(Array)
 
               v.each do |vh|
-                puts " =====> #{vh}"
 
                 if vh.is_a?(Hash) && vh.has_key?(condition) && vh[condition].match(/^\s*#{_action}\s*/i)
 
                   pageObject=vh[condition].match(/^\s*#{_action}\s*\((.*)\)\s*$/i)[1]
-
-
-                  puts __FILE__ + (__LINE__).to_s + " matched on #{_action}, pg:#{pg}, #{pageObject}"
 
                   if pg.nil?
                     result << parent
@@ -145,32 +168,19 @@ module DataMgr
               _rc = hits("#{parent}.get(#{k})", h[k], condition, _action, pg)
             end
 
-
             if !(_rc.nil? || _rc.empty?)
-
-
               result << _rc
-
-              puts __FILE__ + (__LINE__).to_s + " ADDING  #{k} : #{_rc}"
-              #           puts "====> #{k} : #{_rc.class} : #{_rc.length}"
-
-
               result.flatten!
             end
-
-
           end
         end
 
       end
 
-
       result=nil if result.empty?
-      puts __FILE__ + (__LINE__).to_s + " result : #{result}"
+      puts __FILE__ + (__LINE__).to_s + " result : #{result}"  if @debug
       result
     end
-
-
 
   end
 

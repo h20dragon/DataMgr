@@ -7,6 +7,12 @@ require 'yaml'
 
 module DataMgr
 
+  class DBConnectionError < StandardError
+    def initialize(msg="Connect - Unsupported.  Install pre-release for DB support (e.g. gem install DataMgr --pre)")
+      super
+    end
+  end
+
   class DB
     include Singleton
 
@@ -37,14 +43,20 @@ module DataMgr
         conn=get(_id)
 
         if !conn.nil?
-          @clients[_id] = TinyTds::Client.new username: conn['user'],
-                                       password: conn['password'],
-                                       host: conn['host'],
-                                       port: conn['port']
-          rc=true if @clients[_id].active?
+
+          raise DBConnectionError
+
+          #@clients[_id] = TinyTds::Client.new username: conn['user'],
+          #                             password: conn['password'],
+          #                             host: conn['host'],
+          #                             port: conn['port']
+          #rc=true if @clients[_id].active?
         else
           puts __FILE__ + (__LINE__).to_s + " WARN: client #{_id} is not defined."
         end
+
+      rescue DBConnectionError => ex
+        raise ex
 
       rescue => ex
         ;

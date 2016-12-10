@@ -1,0 +1,16 @@
+Admin:
+  id: elvis
+  user: admin
+  password: password
+  host: sqlserver123
+  port: 2080
+  description: Fake SQL connection
+---
+Guest:
+  id: foo
+  user: anonymous
+  password: password
+  host: ssqlserver456
+  port: 2080
+  description: Anonymous account
+
